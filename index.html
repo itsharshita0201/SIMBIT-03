@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="application/json" src="./script.js"></script>
+</head>
+<body>
+    
+    <div class="alert">Alert</div>
+    <div class="start-button">Start Quiz</div>
+    <div class="container">
+        <h1>Let's play a Quiz Game</h1>
+        <div class="question"></div>
+        <div class="choices"></div>
+        <button class="next-button">Next</button>
+        <div class="score-card"></div>
+        <div class="timer"></div>
+    </div>
+    <script>
+        const container = document.querySelector('.container');
+    const questionBox = document.querySelector('.question');
+    const choicesBox = document.querySelector('.choices');
+    const next_button = document.querySelector('.next-button');
+    const scoreCard = document.querySelector('.score-card');
+    const alert = document.querySelector('.alert');
+    const startButton = document.querySelector('.start-button');
+    const timer = document.querySelector('.timer');
+    
+    // Make a array of object that has question and answer
+    const quiz = [
+        {
+            question:"Q. What does CSS stand for?",
+            choices:["Computer Style Sheets","Colorful Style Sheets","Cascading Style Sheets","Creative Style Sheets"],
+            answer:"Cascading Style Sheets"
+        },
+        {
+            question:"Q. Which HTML tag is used to define an internal style sheet?",
+            choices:["<css>","<script>","<style>","<html>"],
+            answer:"<style>"
+        },
+        {
+            question:"Q. Which property is used to change the left margin of an element?",
+            choices:["padding-left","indent","margin-left","none"],
+            answer:"margin-left"
+        },
+        {
+            question:"Q. Which CSS property controls the text size?",
+            choices:["text-style","font-size","font-style","text-size"],
+            answer:"font-size"
+        },
+        {
+            question:"Q.Which is the correct CSS syntax? ",
+            choices:["body:color=black","body{color:black;}","{body;color:black;}","{body:color=black;}"],
+            answer:"body{color:black;}"
+        },
+        {
+            question:"Q. Which property is used to change the background color?",
+           choices:["color","bgcolor","background-color","bg-color"],
+          answer:"background-color"
+        },
+    
+    ];
+    // making variables
+    
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let quizOver = false;
+    let timeLeft = 15;
+    let timerID = null;
+    
+    //Arrow function to show question
+    const showQuestions = () =>{
+        const questionDetails=quiz[currentQuestionIndex];
+        questionBox.textContent = questionDetails.question;
+         
+        choicesBox.textContent ="";
+        for (let i=0;i<questionDetails.choices.length;i++){
+            const currentChoice = questionDetails.choices[i];
+            const choiceDiv = document.createElement('div');
+            choiceDiv.textContent = currentChoice;
+            choiceDiv.classList.add('choice');
+            choicesBox.appendChild(choiceDiv);
+    
+            choiceDiv.addEventListener('click',()=>{
+                if( choiceDiv.classList.contains('selected')){
+                    choiceDiv.classList.remove('selected');
+                }
+                else{
+                    choiceDiv.classList.add('selected');
+                }
+    
+            });
+    
+        }
+    
+    if(currentQuestionIndex < quiz.length){
+        startTimer();
+    
+    }
+    
+    }
+    //function to check answers
+    const checkAnswer = () =>{
+        const selectedChoice = document.querySelector('.choice.selected');
+        if(selectedChoice.textContent === quiz[currentQuestionIndex].answer){
+           
+            displayAlert("Correct Answer");
+            score++;
+        }
+        else{
+          
+            displayAlert(`Wrong Answer! ${quiz[currentQuestionIndex].answer} is the Correct Answer.`);
+        }
+        timeLeft = 15;
+        currentQuestionIndex++;
+        if(currentQuestionIndex < quiz.length){
+           
+            showQuestions();
+        }
+        else{
+            showScore();
+            stopTimer();
+        
+        }
+      
+    
+    }
+    //function to show score
+    const showScore = () =>{
+        questionBox.textContent = "";
+        choicesBox.textContent = "";
+        scoreCard.textContent = `You Scored ${score} out of ${quiz.length}! `;
+        displayAlert("You have completed this quiz!");
+        next_button.textContent ="Play Again!";
+        quizOver = true;
+        timer.style.display ="none";
+    
+       
+    }
+    //function to show alert
+    
+    const displayAlert = (msg) =>{
+        alert.style.display = "block";
+            alert.textContent = msg;
+        setTimeout(()=>{
+            alert.style.display = "none";
+        },2000);
+    
+    }
+    //function to start timer
+    const startTimer = () =>{
+        clearInterval(timerID);  //check for any exit timer
+        timer.textContent =timeLeft;
+        const countDown = () =>{
+            timeLeft--;
+            timer.textContent =timeLeft;
+            if(timeLeft === 0){
+         const confirmUser = confirm("Time up!! Do you want to play the quiz again.");
+         if(confirmUser === true){
+            timeLeft =15;
+            startQuiz();
+         }
+         else{
+            startButton.style.display ="block";
+            container.style.display = "none";
+            return;
+         }
+            }
+        }
+        timerID = setInterval(countDown,1000);
+        
+    }
+    // function to stop timer
+    const stopTimer = () =>{
+    clearInterval(timerID);
+    }
+    
+    //function to shuffle questions
+    const shuffleQuestions = ()  =>{
+        for(let i=quiz.length-1;i>0;i--){
+            const j = Math.floor(Math.random() *(i+1));
+            [quiz[i],quiz[j]] = [quiz[j],quiz[i]];
+        }
+        currentQuestionIndex = 0;
+        showQuestions();
+    }
+    
+    //function to start quiz
+    
+    const startQuiz = () =>{
+        timeLeft = 15;
+        timer.style.display = "flex";
+        shuffleQuestions ();
+    }
+    
+    //adding event listener to start button
+    startButton.addEventListener('click',()=>{
+        startButton.style.display = "none";
+        container.style.display ="block";
+        showQuestions();
+    });
+    
+    showQuestions();
+    next_button.addEventListener('click', () => {
+        const selectedChoice=document.querySelector('.choice.selected');
+        if(!selectedChoice && next_button.textContent ==="Next"){
+    
+           
+            displayAlert("Select your answer");
+            return;
+        }
+        if(quizOver){
+            next_button.textContent="Next";
+            scoreCard.textContent="";
+            currentQuestionIndex=0;
+            startQuiz();
+            quizOver = false;
+            score = 0;
+            
+        }
+        else{
+            checkAnswer();
+        }
+    });
+
+
+    </script>
+
+</body>
+
+
+</html>
